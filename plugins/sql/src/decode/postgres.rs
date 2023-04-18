@@ -10,7 +10,7 @@ pub(crate) fn to_json(v: PgValueRef) -> Result<JsonValue, Error> {
     }
 
     let res = match v.type_info().name() {
-        "CHAR" | "VARCHAR" | "TEXT" | "NAME" => {
+        "CHAR" | "VARCHAR" | "TEXT" | "NAME" | "OID" | "NUMERIC" => {
             if let Ok(v) = ValueRef::to_owned(&v).try_decode() {
                 JsonValue::String(v)
             } else {
@@ -66,7 +66,7 @@ pub(crate) fn to_json(v: PgValueRef) -> Result<JsonValue, Error> {
                 JsonValue::Null
             }
         }
-        "JSON" | "JSONB" => ValueRef::to_owned(&v).try_decode().unwrap_or_default(),
+        "JSON" | "JSONB" | "JSON[]" | "JSONB[]" => ValueRef::to_owned(&v).try_decode().unwrap_or_default(),
         "BYTEA" => {
             if let Ok(v) = ValueRef::to_owned(&v).try_decode::<Vec<u8>>() {
                 JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
